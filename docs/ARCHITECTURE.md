@@ -1,21 +1,34 @@
 # Architecture
 
-## Design summary
+```mermaid
+stateDiagram-v2
+    [*] --> pending_approval: propose
+    pending_approval --> approved: approve exact intent digest
+    approved --> executed: claim once + execute
+    approved --> failed: executor error
+    pending_approval --> expired: TTL elapsed
+    approved --> expired: TTL elapsed
+```
 
-A small API and state store sit between agent clients and side-effecting tools. Policy evaluation happens before execution; the executor receives only the approved action payload.
+## Trust boundary
 
-## Main components
+The control plane stores action records separately from the target workspace. `preview` resolves the target and describes the effect without changing it. `approve` records the current intent digest. `execute` recalculates that digest, checks expiry and status, creates a single-use claim file, then invokes a constrained built-in action.
 
-- Receive a typed task
-- Build an immutable action preview
-- Apply policy and approval gates
-- Execute exactly the approved action
-- Record evidence and final state
+```mermaid
+flowchart LR
+    C[Agent client] -->|typed intent| S[JSON state store]
+    S --> V[Preview and policy checks]
+    H[Human approver] -->|digest-bound approval| S
+    S --> X[Constrained executor]
+    X -->|workspace-confined effect| W[Workspace]
+    X -->|hash, bytes, path| L[audit.jsonl]
+```
 
-## Initial implementation boundary
+## Security properties
 
-Start with a local, inspectable implementation. Prefer plain files, small typed schemas, and deterministic commands before introducing a database, hosted service, or provider-specific adapter.
+- Relative paths are resolved and checked against the workspace root.
+- Approval covers ID, kind, payload, requester, creation, and expiry.
+- A claim file prevents replay after execution begins.
+- The audit log is append-only at the application layer.
 
-## Verification
-
-Every MVP feature should have at least one fixture, one failure case, and one visible verification artifact. Keep inferred behavior separate from measured behavior.
+Local users with direct filesystem write access can still alter state or logs. Production use would require authenticated identities, tamper-evident storage, and stronger concurrency controls.

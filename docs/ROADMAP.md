@@ -1,6 +1,6 @@
 # Roadmap
 
-## Phase 1: contract and local demo
+## Phase 1: runnable local MVP (complete)
 
 - Typed task and action schemas
 - Read-only preview mode
@@ -9,9 +9,8 @@
 - Append-only audit record
 - Local JSON or SQLite state store
 
-## Later phases
+## Candidate next phases
 
-- MVP local state machine
 - Policy adapters and dry-run CLI
 - Evidence viewer
 - Connector adapters
