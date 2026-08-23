@@ -31,6 +31,27 @@ governed-agent-plane --state .state --workspace .workspace audit
 
 Use `uv sync` and `uv run governed-agent-plane ...` if you prefer uv. PowerShell users can run `examples/demo.ps1`.
 
+## How it works
+
+```mermaid
+flowchart TD
+    A[Agent client] --> I[Typed action intent]
+    I --> V[Schema + path validation]
+    V --> P[Read-only preview<br/>effect, target, expiry]
+    P --> S[(Local action state)]
+    S --> G{Human approval gate}
+    G -->|reject or expire| N[No side effect]
+    G -->|approve exact digest| D[Digest verifier<br/>+ single-use claim]
+    D --> E[Constrained executor]
+    E --> W[(Configured workspace)]
+    E --> R[Execution evidence<br/>path, bytes, SHA-256]
+    I -. proposed .-> L[(Append-only audit log)]
+    G -. approved .-> L
+    R -. executed .-> L
+```
+
+The plane separates deciding what should happen from performing it. The executor cannot receive a different payload after approval because execution recalculates and checks the approved intent digest.
+
 ## Governed lifecycle
 
 ```mermaid
