@@ -1,87 +1,35 @@
 # Governed Agent Plane
 
-![Five interoperable AI infrastructure modules](docs/portfolio-hero.png)
-
 A local-first control plane for previewing, approving, executing, and auditing agent actions.
 
-Agent frameworks are good at calling tools; they are less consistent at proving that the executed action is exactly what a person approved. Governed Agent Plane places a durable policy boundary between intent and side effects. Every action has an immutable digest, expiry, preview, named approver, single-use execution claim, and evidence record.
+## Why this exists
 
-## Who it is for
+Agent systems can perform useful work across tools, but users often cannot see what will happen, stop unsafe actions, or reconstruct why an action occurred.
 
-- Agent builders who need explicit human approval boundaries
-- Teams prototyping governed automation without deploying a service
-- Reviewers who need to reconstruct what happened from local evidence
+## What it provides
 
-## Run it
+Provide a durable action lifecycle: intent, preview, approval, execution, evidence, and rollback-aware status.
 
-Requires Python 3.11+ and has no runtime dependencies.
+## Intended users
 
-```bash
-git clone https://github.com/mahsan07/governed-agent-plane.git
-cd governed-agent-plane
-python -m pip install -e .
-governed-agent-plane --state .state --workspace .workspace propose write_text \
-  --id action-1 --requested-by planner \
-  --payload '{"path":"report.txt","text":"Verified output\n"}'
-governed-agent-plane --state .state --workspace .workspace preview action-1
-governed-agent-plane --state .state --workspace .workspace approve action-1 --approver human
-governed-agent-plane --state .state --workspace .workspace execute action-1 --executor local-executor
-governed-agent-plane --state .state --workspace .workspace audit
-```
+Builders operating multiple agents, tools, and local services who need explicit governance without giving up automation.
 
-Use `uv sync` and `uv run governed-agent-plane ...` if you prefer uv. PowerShell users can run `examples/demo.ps1`.
+## Example
 
-## How it works
+Preview a file export, require approval, execute it once, and show the evidence trail.
 
-```mermaid
-flowchart TD
-    A[Agent client] --> I[Typed action intent]
-    I --> V[Schema + path validation]
-    V --> P[Read-only preview<br/>effect, target, expiry]
-    P --> S[(Local action state)]
-    S --> G{Human approval gate}
-    G -->|reject or expire| N[No side effect]
-    G -->|approve exact digest| D[Digest verifier<br/>+ single-use claim]
-    D --> E[Constrained executor]
-    E --> W[(Configured workspace)]
-    E --> R[Execution evidence<br/>path, bytes, SHA-256]
-    I -. proposed .-> L[(Append-only audit log)]
-    G -. approved .-> L
-    R -. executed .-> L
-```
+## Current status
 
-The plane separates deciding what should happen from performing it. The executor cannot receive a different payload after approval because execution recalculates and checks the approved intent digest.
+Public scaffold. The repository defines the product contract and MVP boundaries before implementation begins.
 
-## Governed lifecycle
+## Documentation
 
-```mermaid
-sequenceDiagram
-    participant A as Agent
-    participant P as Control Plane
-    participant H as Human
-    participant E as Constrained Executor
-    A->>P: propose typed action
-    P-->>A: immutable preview + digest + expiry
-    H->>P: approve exact digest
-    P->>E: single-use execution claim
-    E-->>P: result + SHA-256 evidence
-    P-->>H: append-only audit trail
-```
+- [Product definition](docs/PRODUCT.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Flow and sequence diagrams](docs/DIAGRAMS.md)
+- [Safety](docs/SAFETY.md)
+- [Roadmap](docs/ROADMAP.md)
 
-The MVP executor intentionally supports only `write_text`, `append_text`, and `make_directory`, all confined to the configured workspace. There is no arbitrary shell command, network connector, or hidden credential store.
+## License
 
-## What is different
-
-This project is not another agent loop. It is a narrow governance layer that can sit in front of many runtimes. Approval is bound cryptographically to the action payload, expires, and cannot be replayed. The executor receives only a previously approved, locally inspectable action.
-
-It does not yet implement multi-user identity, cryptographic signatures, rollback, or distributed state. Those are explicit next-stage concerns rather than implied guarantees.
-
-## Verify it
-
-```bash
-python -m unittest discover -s tests -v
-```
-
-See [architecture](docs/ARCHITECTURE.md), [portfolio ecosystem](docs/ECOSYSTEM.md), [product definition](docs/PRODUCT.md), [safety boundaries](docs/SAFETY.md), [roadmap](docs/ROADMAP.md), and [status](STATUS.md).
-
-MIT licensed.
+MIT. See [LICENSE](LICENSE).
