@@ -2,6 +2,10 @@
 
 ## Governed action flow
 
+![Governed Agent Plane action flow](../assets/architecture-flow.svg)
+
+### Mermaid source
+
 ```mermaid
 flowchart TD
   Client["Agent client"] --> Preview["Immutable action preview"]
@@ -13,6 +17,10 @@ flowchart TD
 ```
 
 ## Approval sequence
+
+![Governed Agent Plane approval sequence](../assets/sequence-flow.svg)
+
+### Mermaid source
 
 ```mermaid
 sequenceDiagram
