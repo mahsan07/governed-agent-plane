@@ -18,6 +18,12 @@ Builders operating multiple agents, tools, and local services who need explicit 
 
 Preview a file export, require approval, execute it once, and show the evidence trail.
 
+## Visual overview
+
+![Governed Agent Plane architecture flow](assets/architecture-flow.svg)
+
+[Open the architecture and sequence diagrams](docs/DIAGRAMS.md).
+
 ## Current status
 
 Public scaffold. The repository defines the product contract and MVP boundaries before implementation begins.
